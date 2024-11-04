@@ -24,5 +24,5 @@ Based on results we evaluate metrics and compare the results of SMP and PSM meth
 You can find it under: *FIM_Investigation.pdf* file in main folder tree
 
 ## Results visualizations
-![Code Completion using PSM and SPM method - code based dataset](code_completion_comparison.png)
+![Code Completion using PSM and SPM method - code based dataset](charts/code_completion_comparison.png)
 
