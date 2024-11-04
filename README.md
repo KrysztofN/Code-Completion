@@ -10,12 +10,12 @@ Each dataset will contain records in format:
 - <fim_prefix>{prefix}<fim_suffix>{suffix}<fim_middle>{middle} - SMP
 <br/>
 Then we prompt the model and wait for the predictions.
-As we receive the predictions, we calculate metrics popularly used in code completion:
-- CHARF,
-- Jaccard,
-- BLEU,
-- ROUGE,
-- Exact Macth
+As we receive the predictions, we calculate metrics popularly used in code completion:<br/>
+- CHARF,\
+- Jaccard,\
+- BLEU,\
+- ROUGE,\
+- Exact Macth\
 Based on results we evaluate metrics and compare the results of SMP and PSM methods as well as difference between natural language and code-based datasets.
 
 
