@@ -18,7 +18,7 @@ As we receive the predictions, we calculate metrics popularly used in code compl
 - Exact Macth <br/>
 <br/>
 Based on results we evaluate metrics and compare the results of SMP and PSM methods as well as difference between natural language and code-based datasets.
-<br/>
+
 ## Research paper
 You can find it under: *FIM_Investigation.pdf* file in main folder tree
 
