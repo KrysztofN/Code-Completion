@@ -19,9 +19,21 @@ As we receive the predictions, we calculate metrics popularly used in code compl
 <br/>
 Based on results we evaluate metrics and compare the results of SMP and PSM methods as well as difference between natural language and code-based datasets.
 <br/>
-
 ## Research paper
 You can find it under: *FIM_Investigation.pdf* file in main folder tree
+
+## How to generate datasets
+`make dataset-code mode="PSM"`<br\>
+or <br\>
+`make dataset-text mode="SMP"`
+
+## How to generate completions
+`make predict-code`<br\>
+or <br\>
+`make predict-text` 
+
+## How to generate charts
+`make charts`<br\>
 
 ## Results visualizations
 ![](charts/code_completion_comparison.png)
@@ -33,6 +45,6 @@ You can find it under: *FIM_Investigation.pdf* file in main folder tree
 <br>
 <br>
 ![](charts/spm_comparison.png)
-*SPM method: Code vs Natural language copletion comparison*
+*SPM method: Code vs Natural language completion comparison*
 
 
