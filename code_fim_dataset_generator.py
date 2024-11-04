@@ -1,6 +1,5 @@
-import os
 from dataclasses import dataclass
-from typing import List, Dict, Optional, Tuple
+from typing import List, Dict, Tuple
 from pathlib import Path
 import json
 import random
@@ -54,7 +53,6 @@ class FIMDatasetGenerator:
     def _split_document(self, content: str) -> Tuple[str, str, str]:
         """
         Split document into three parts completely randomly at character level.
-        No minimum size constraints - pure random splits.
         """
         content_length = len(content)
         if content_length < 2:  
@@ -176,9 +174,9 @@ def main():
         random_seed=42
     )
     
-    examples = generator.process_directory("assets")
+    examples = generator.process_directory("assets/code_based")
     
-    generator.save_dataset("datasets/fim_dataset.jsonl", format='jsonl')
+    generator.save_dataset("datasets/code_fim_dataset.jsonl", format='jsonl')
     stats = generator.get_statistics()
     print("\nDataset Statistics:")
     print(json.dumps(stats, indent=2))

@@ -10,22 +10,22 @@ import evaluate
 from rouge_score import rouge_scorer
 
 @dataclass
-class FIMPrediction:
+class TextCompletionPrediction:
     original_text: str
     prefix: str
-    predicted_middle: str
-    ground_truth_middle: str
     suffix: str
+    predicted_completion: str
+    ground_truth_completion: str
     exact_match: bool
     chrf_score: float
     jaccard_score: float
     bleu_score: float
     rouge: Dict[str, float]
     prediction_confidence: float
-    file_path: str
+    page_number: int
     split_index: int
 
-class StarCoderFIMPredictor:
+class TextCompletionPredictor:
     def __init__(self, model_name="bigcode/tiny_starcoder_py"):
         print("Loading model and tokenizer...")
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
@@ -53,7 +53,7 @@ class StarCoderFIMPredictor:
         return result['bleu'] if result['bleu'] is not None else 0.0
 
     def token_overlap(self, prediction: str, reference: str) -> float:
-        """Jaccard similarity score"""
+        """Calculate Jaccard similarity between prediction and reference"""
         pred_tokens = set(prediction.split())
         ref_tokens = set(reference.split())
 
@@ -65,7 +65,7 @@ class StarCoderFIMPredictor:
         return len(intersection)/len(union)
 
     def rouge_scores(self, prediction: str, reference: str) -> Dict[str, float]:
-        """ROUGE scores (1, 2, and L)"""
+        """Calculate ROUGE scores between prediction and reference"""
         scores = self.rouge_scorer.score(reference, prediction)
         return {
             'rouge1': scores['rouge1'].fmeasure,
@@ -73,8 +73,9 @@ class StarCoderFIMPredictor:
             'rougeL': scores['rougeL'].fmeasure
         }
     
-    def predict_mode(self, prefix: str, suffix: str, max_new_tokens: int = 128, mode: str  = "PSM") -> tuple:
-        """Generate the middle part given prefix and suffix"""
+    def predict_mode(self, prefix: str, suffix: str, max_new_tokens: int = 128, mode:str = "SPM") -> tuple:
+        """Generate completion given a prefix and suffix"""
+        
         if mode == "PSM":
             prompt = f"<fim_prefix>{prefix}<fim_suffix>{suffix}<fim_middle>"
         elif mode == "SPM":
@@ -86,7 +87,7 @@ class StarCoderFIMPredictor:
             return_tensors="pt",
             padding=True,
             truncation=True,
-            max_length=512,  
+            max_length=512,
             return_attention_mask=True
         )
         
@@ -98,10 +99,10 @@ class StarCoderFIMPredictor:
             num_return_sequences=1,
             output_scores=True,
             return_dict_in_generate=True,
-            temperature=0.2,
+            temperature=0.7,
             top_p=0.95,
             do_sample=True,
-            pad_token_id=self.tokenizer.pad_token_id, 
+            pad_token_id=self.tokenizer.pad_token_id,
         )
         
         with torch.no_grad():
@@ -120,8 +121,9 @@ class StarCoderFIMPredictor:
         
         return completion.strip(), confidence
 
+
     def process_dataset(self, dataset_path: str, output_path: str, mode: str):
-        """Process entire FIM dataset and save results"""
+        """Process FIM dataset and save results"""
         predictions = []
         
         with open(dataset_path, 'r') as f:
@@ -131,31 +133,31 @@ class StarCoderFIMPredictor:
         
         for example in tqdm(examples):
             text = example['text']
-            
+
             prefix = text.split('<fim_suffix>')[0].replace('<fim_prefix>', '')
             suffix = text.split('<fim_suffix>')[1].split('<fim_middle>')[0]
             ground_truth = text.split('<fim_middle>')[1]
-            
+
             predicted, confidence = self.predict_mode(prefix, suffix, mode = mode)
             chrf_score = self.calculate_chrf(predicted, ground_truth)
             jaccard_score = self.token_overlap(predicted, ground_truth)
             bleu_score = self.calculate_bleu(predicted, ground_truth)
             rouge_scores = self.rouge_scores(predicted, ground_truth)
 
-            prediction = FIMPrediction(
+            prediction = TextCompletionPrediction(
                 original_text=example['original_text'],
                 prefix=prefix,
-                predicted_middle=predicted,
-                ground_truth_middle=ground_truth,
                 suffix=suffix,
+                predicted_completion=predicted,
+                ground_truth_completion=ground_truth,
                 exact_match=predicted == ground_truth,
                 chrf_score=chrf_score,
                 jaccard_score=jaccard_score,
                 bleu_score=bleu_score,
                 rouge=rouge_scores,
                 prediction_confidence=confidence,
-                file_path=example['file_path'],
-                split_index=example['split_index']
+                page_number=example.get('page_number', 0),
+                split_index=example.get('split_index', 0)
             )
             
             predictions.append(prediction)
@@ -163,17 +165,17 @@ class StarCoderFIMPredictor:
         self._save_results(predictions, output_path)
         self._print_statistics(predictions)
     
-    def _save_results(self, predictions: List[FIMPrediction], output_path: str):
+    def _save_results(self, predictions: List[TextCompletionPrediction], output_path: str):
         """Save predictions to file"""
         results = []
         for pred in predictions:
             results.append({
-                'file_path': pred.file_path,
+                'page_number': pred.page_number,
                 'split_index': pred.split_index,
                 'prefix': pred.prefix,
-                'predicted_middle': pred.predicted_middle,
-                'ground_truth_middle': pred.ground_truth_middle,
                 'suffix': pred.suffix,
+                'predicted_completion': pred.predicted_completion,
+                'ground_truth_completion': pred.ground_truth_completion,
                 'exact_match': pred.exact_match,
                 'chrf_score': pred.chrf_score,
                 'jaccard_score': pred.jaccard_score,
@@ -188,7 +190,7 @@ class StarCoderFIMPredictor:
         with open(output_path, 'w') as f:
             json.dump(results, f, indent=2)
     
-    def _print_statistics(self, predictions: List[FIMPrediction]):
+    def _print_statistics(self, predictions: List[TextCompletionPrediction]):
         """Print summary statistics"""
         total = len(predictions)
         exact_matches = sum(1 for p in predictions if p.exact_match)
@@ -211,18 +213,19 @@ class StarCoderFIMPredictor:
         print(f"Average RougeL score: {avg_rougeL:.3f}")
         print(f"Average confidence: {avg_confidence:.3f}")
         
-        print("\nResults by file:")
-        files_stats = {}
+        # Statistics by page number
+        print("\nResults by page:")
+        page_stats = {}
         for pred in predictions:
-            if pred.file_path not in files_stats:
-                files_stats[pred.file_path] = {
+            if pred.page_number not in page_stats:
+                page_stats[pred.page_number] = {
                     'total': 0, 
                     'correct': 0,
                     'chrf_scores': [],
                     'jaccard_scores': [],
                     'bleu_scores': []
                 }
-            stats = files_stats[pred.file_path]
+            stats = page_stats[pred.page_number]
             stats['total'] += 1
             stats['chrf_scores'].append(pred.chrf_score)
             stats['jaccard_scores'].append(pred.jaccard_score)
@@ -230,20 +233,21 @@ class StarCoderFIMPredictor:
             if pred.exact_match:
                 stats['correct'] += 1
 
-        for file_path, stats in files_stats.items():
-            print(f"\n{file_path}:")
+        for page_num, stats in sorted(page_stats.items()):
+            print(f"\nPage {page_num}:")
             print(f"  Accuracy: {stats['correct']/stats['total']*100:.2f}% ({stats['correct']}/{stats['total']})")
             print(f"  Average CHRF: {np.mean(stats['chrf_scores']):.3f}")
             print(f"  Average Jaccard: {np.mean(stats['jaccard_scores']):.3f}")
             print(f"  Average BLEU: {np.mean(stats['bleu_scores']):.3f}")
 
 def main():
-    predictor = StarCoderFIMPredictor()
-    mode = "PSM"
+    predictor = TextCompletionPredictor()
+    mode = "SPM"
+
     predictor.process_dataset(
-        dataset_path="datasets/code_fim_dataset.jsonl",
-        output_path=f"datasets/code_fim_predictions{mode}.json",
-        mode = mode,
+        dataset_path="datasets/text_fim_dataset.jsonl",
+        output_path=f"datasets/text_fim_predictions{mode}.json",
+        mode = mode
     )
 
 if __name__ == "__main__":

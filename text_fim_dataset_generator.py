@@ -1,4 +1,3 @@
-import os
 from dataclasses import dataclass
 from typing import List, Dict, Tuple
 from pathlib import Path
@@ -142,13 +141,13 @@ class TextFIMGenerator:
 def main():
     generator = TextFIMGenerator(
         lines_per_page=80,    
-        splits_per_page=3,      
+        splits_per_page=1,      
         fim_probability=0.8,    
         random_seed=42
     )
     
     generator.process_text_file("assets/text_based/hamlet.txt")
-    generator.save_dataset("datasets/hamlet_fim_dataset.jsonl", format='jsonl')
+    generator.save_dataset("datasets/text_fim_dataset.jsonl", format='jsonl')
     stats = generator.get_statistics()
     print("\nDataset Statistics:")
     print(json.dumps(stats, indent=2))
