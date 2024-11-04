@@ -23,17 +23,17 @@ Based on results we evaluate metrics and compare the results of SMP and PSM meth
 You can find it under: *FIM_Investigation.pdf* file in main folder tree
 
 ## How to generate datasets
-`make dataset-code mode="PSM"`<br\>
-or <br\>
+`make dataset-code mode="PSM"`<br/>
+or <br/>
 `make dataset-text mode="SMP"`
 
 ## How to generate completions
-`make predict-code`<br\>
-or <br\>
+`make predict-code`<br/>
+or <br/>
 `make predict-text` 
 
 ## How to generate charts
-`make charts`<br\>
+`make charts`<br/>
 
 ## Results visualizations
 ![](charts/code_completion_comparison.png)
