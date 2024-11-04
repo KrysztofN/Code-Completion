@@ -35,7 +35,7 @@ or <br/>
 ## How to generate charts
 `make charts`<br/>
 
-## Results visualizations
+## Results visualizations | Metric comparison
 ![](charts/code_completion_comparison.png)
 *Code completion using PSM and SPM method - code based dataset*
 <br>
