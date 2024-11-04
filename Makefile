@@ -1,4 +1,4 @@
-.PHONY: dataset-code dataset-text prediction-code prediction-text
+.PHONY: dataset-code dataset-text prediction-code prediction-text charts
 
 mode ?= "PSM"
 
@@ -13,3 +13,6 @@ prediction-code:
 
 prediction-text:
 	py text_fim_dataset_generator.py 
+
+charts:
+	py charts.py 
