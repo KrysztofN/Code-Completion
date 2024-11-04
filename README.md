@@ -3,7 +3,7 @@
 *This repository was created for Jetbrains 2025 Internship programm*
 
 ## Description<br/>
-With the help of TinyStarCoder we investigate it's prediction capabilities on natural language and code-based datasets.
+With the help of TinyStarCoder we investigate its' prediction capabilities on natural language and code-based datasets.
 First we perform different FiM (Fill-in-the-Middle) techniques - SPM and PSM to create code completion datasets.
 Each dataset will contain records in format:
 - <fim_prefix>{prefix}<fim_suffix>{suffix}<fim_middle>{middle} - PSM
