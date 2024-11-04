@@ -8,6 +8,7 @@ from tqdm import tqdm
 from sacrebleu.metrics import CHRF
 import evaluate
 from rouge_score import rouge_scorer
+import argparse
 
 @dataclass
 class FIMPrediction:
@@ -238,8 +239,12 @@ class StarCoderFIMPredictor:
             print(f"  Average BLEU: {np.mean(stats['bleu_scores']):.3f}")
 
 def main():
+    parser = argparse.ArgumentParser(description="Generate FIM dataset")
+    parser.add_argument('-m', '--mode', type=str, choices=['PSM', 'SPM'], default='PSM',help='Mode for dataset generation (PSM: Prefix-Suffix-Middle, SPM: Suffix-Prefix-Middle)' )
+    args = parser.parse_args()
+
     predictor = StarCoderFIMPredictor()
-    mode = "PSM"
+    mode = args.mode
     predictor.process_dataset(
         dataset_path="datasets/code_fim_dataset.jsonl",
         output_path=f"datasets/code_fim_predictions{mode}.json",
