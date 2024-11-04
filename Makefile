@@ -1,18 +1,24 @@
-.PHONY: dataset-code dataset-text prediction-code prediction-text charts
+.PHONY: dataset-code dataset-text prediction-code prediction-text charts 
 
 mode ?= "PSM"
 
-dataset-code:
-	py code_completion.py --mode $(mode)
+ifeq ($(OS),Windows_NT)
+	PYTHON_CMD := python
+else
+	PYTHON_CMD := python3
+endif
 
-dataset-text:
-	py text_completion.py --mode $(mode)
+dataset-code: 
+	$(PYTHON_CMD) code_completion.py --mode $(mode)
 
-prediction-code:
-	py code_fim_dataset_generator.py
+dataset-text: 
+	$(PYTHON_CMD) text_completion.py --mode $(mode)
 
-prediction-text:
-	py text_fim_dataset_generator.py 
+prediction-code: 
+	$(PYTHON_CMD) code_fim_dataset_generator.py
 
-charts:
-	py charts.py 
+prediction-text: 
+	$(PYTHON_CMD) text_fim_dataset_generator.py
+
+charts: 
+	$(PYTHON_CMD) charts.py
